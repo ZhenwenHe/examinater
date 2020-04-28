@@ -89,7 +89,7 @@
         </repository>
         <repository>
             <id>zhenwenhe-repository</id>
-            <url>https://github.com/ZhenwenHe/repository</url>
+            <url>https://raw.github.com/zhenwenhe/repository/snapshot</url>
         </repository>
     </repositories>
 
