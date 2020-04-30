@@ -5,6 +5,9 @@ import cn.edu.cug.cs.gtl.extractor.TextExtractor;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+/**
+ * 试卷提取中使用的过滤器
+ */
 public class PaperFilter {
     private ArrayList<Pattern>  patterns = new ArrayList<>();
 

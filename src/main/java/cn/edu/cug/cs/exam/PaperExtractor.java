@@ -5,6 +5,9 @@ import cn.edu.cug.cs.gtl.extractor.TextExtractor;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+/**
+ * 从DOC或PDF原始试卷中提取题目
+ */
 public class PaperExtractor {
     /**
      * 从试卷中提取文本信息，该文本每行一个字符串，并去除了题目无关信息。
