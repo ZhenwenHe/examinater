@@ -1,11 +1,14 @@
 package cn.edu.cug.cs.exam;
 
+import cn.edu.cug.cs.gtl.protos.Identifier;
+
 import java.util.ArrayList;
 
 /**
  * 试卷题目基类
  */
 public class Question {
+    protected Identifier identifier;//题库中试题的唯一编号
     protected ArrayList<String> questionText;//题目问题文本
     protected ArrayList<Figure> questionFigures;//题目中的图
     protected String answerText;//答案文本
