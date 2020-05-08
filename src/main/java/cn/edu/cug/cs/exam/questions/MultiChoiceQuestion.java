@@ -1,4 +1,4 @@
-package cn.edu.cug.cs.exam;
+package cn.edu.cug.cs.exam.questions;
 
 import java.util.ArrayList;
 
