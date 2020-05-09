@@ -1,8 +1,12 @@
 package cn.edu.cug.cs.exam.questions;
 
 import cn.edu.cug.cs.exam.filters.*;
+import cn.edu.cug.cs.gtl.io.Storable;
 import cn.edu.cug.cs.gtl.protos.Identifier;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static cn.edu.cug.cs.exam.questions.QuestionType.*;
@@ -10,27 +14,31 @@ import static cn.edu.cug.cs.exam.questions.QuestionType.*;
 /**
  * 试卷题目基类
  */
-public class Question {
+public class Question   {
 
-    protected Identifier identifier;//题库中试题的唯一编号
-    protected ArrayList<String> questionText;//题目问题文本
-    protected ArrayList<Figure> questionFigures;//题目中的图
-    protected String answerText;//答案文本
-    protected ArrayList<Figure> answerFigures;//答案中的图
-    protected double difficulty;//难度系数
-    protected double score;//分值
-    protected ArrayList<Double> detailedScores;//三级小题的分数，一般只有应用题型有这个字段；
-    protected String knowledge;//考察的知识点
-    protected String chapter;//知识点所属章节
+    cn.edu.cug.cs.gtl.protos.Question.Builder builder=cn.edu.cug.cs.gtl.protos.Question.newBuilder();
+
+    private Identifier identifier;//题库中试题的唯一编号
+    private ArrayList<String> questionText;//题目问题文本
+    private ArrayList<Figure> questionFigures;//题目中的图
+    private String answerText;//答案文本
+    private ArrayList<Figure> answerFigures;//答案中的图
+    private double difficulty;//难度系数
+    private double score;//分值
+    private ArrayList<Double> detailedScores;//三级小题的分数，一般只有应用题型有这个字段；
+    private String knowledge;//考察的知识点
+    private String chapter;//知识点所属章节
 
     public Question(ArrayList<String> questionText, String answerText) {
-        this.questionText = questionText;
-        this.answerText = answerText;
-        this.identifier= Identifier.newBuilder().build();
+        //this.questionText = questionText;
+        //builder.addAllQuestionText(questionText);
+        //this.answerText = answerText;
+        //builder.setAnswerText(answerText);
+        //builder.setIdentifier(Identifier.newBuilder().build());
     }
 
     public Identifier getIdentifier() {
-        return identifier;
+        return builder.getIdentifier();
     }
 
     public ArrayList<Figure> getQuestionFigures() {
@@ -123,4 +131,5 @@ public class Question {
             return QT_MULTI_CHOICE;
         return QT_SYNTHESIZED;
     }
+
 }

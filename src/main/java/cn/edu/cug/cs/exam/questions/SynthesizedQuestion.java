@@ -24,7 +24,7 @@ public class SynthesizedQuestion extends Question {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(this.questionText.get(0));
+        sb.append(this.getQuestionText().get(0));
         sb.append("\n");
         int i=1;
         for(Question q: questions){

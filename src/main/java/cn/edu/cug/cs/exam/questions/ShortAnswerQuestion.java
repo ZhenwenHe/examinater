@@ -12,7 +12,7 @@ public class ShortAnswerQuestion extends Question{
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(this.questionText.get(0));
+        sb.append(getQuestionText().get(0));
         sb.append("\n");
         return sb.toString();
     }

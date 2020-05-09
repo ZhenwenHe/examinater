@@ -23,20 +23,21 @@ public class SingleChoiceQuestion extends Question {
 
     @Override
     public String toString() {
+
         StringBuilder sb = new StringBuilder();
-        sb.append(this.questionText.get(0));
+        sb.append(this.getQuestionText().get(0));
         sb.append("\n");
         sb.append("A.");
-        sb.append(this.questionText.get(1));
+        sb.append(this.getQuestionText().get(1));
         sb.append("\n");
         sb.append("B.");
-        sb.append(this.questionText.get(2));
+        sb.append(this.getQuestionText().get(2));
         sb.append("\n");
         sb.append("C.");
-        sb.append(this.questionText.get(3));
+        sb.append(this.getQuestionText().get(3));
         sb.append("\n");
         sb.append("D.");
-        sb.append(this.questionText.get(4));
+        sb.append(this.getQuestionText().get(4));
         sb.append("\n");
         return sb.toString();
     }
