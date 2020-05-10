@@ -48,14 +48,15 @@ public class PaperExtractor {
         if(qb!=null) qa.addQuestionGroup(qb);
         qb= parseBlankFillingQuestions(text);
         if(qb!=null) qa.addQuestionGroup(qb);
+        qb= parseTrueFalseQuestions(text);
+        if(qb!=null) qa.addQuestionGroup(qb);
         qb= parseShortAnswerQuestions(text);
         if(qb!=null) qa.addQuestionGroup(qb);
         qb= parseProblemSolvingQuestions(text);
         if(qb!=null) qa.addQuestionGroup(qb);
         qb= parseSynthesizedQuestions(text);
         if(qb!=null) qa.addQuestionGroup(qb);
-        qb= parseTrueFalseQuestions(text);
-        if(qb!=null) qa.addQuestionGroup(qb);
+
         return qa.build();
     }
     /**
@@ -65,29 +66,7 @@ public class PaperExtractor {
      * @throws Exception
      */
     public ArrayList<String> parseText(String fileDocument) throws Exception{
-        String[] paragraphs = TextExtractor.parseToStrings(fileDocument);
-        ArrayList<String> ss= new ArrayList<>();
-        //查找试题开始的前一行，此行向上的部分全部剔除
-        int i =0;
-        for(i=0;i<paragraphs.length;++i){
-            if(filter.begin(paragraphs[i]))
-                break;
-        }
-        //剔除模板文本
-        for(int j=i+1;j<paragraphs.length;++j){
-            if(filter.eliminate(paragraphs[j])==false)
-                ss.add(paragraphs[j]);
-        }
-        //剔除连续空行
-        int c = ss.size();
-        Pattern p = Pattern.compile("^\\s+");
-        for(int j=0;j<c;++j){
-            while(j+1<c && p.matcher(ss.get(j)).find() && p.matcher(ss.get(j+1)).find()){
-                ss.remove(j+1);
-                c--;
-            }
-        }
-        return ss;
+        return parseText(fileDocument,this.filter);
     }
 
     /**
@@ -513,6 +492,7 @@ public class PaperExtractor {
 
         return qa.build();
     }
+
 
 
 

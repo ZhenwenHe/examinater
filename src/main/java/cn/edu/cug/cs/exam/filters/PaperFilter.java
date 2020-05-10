@@ -15,6 +15,8 @@ public class PaperFilter {
 
     private ArrayList<QuestionFilter> questionFilters=new ArrayList<>();
 
+    private AnswerFilter  answerFilter=null;
+
     public PaperFilter(String filterFile) throws Exception{
         //read filters
         String[] filters= TextExtractor.parseToStrings(filterFile);
@@ -113,6 +115,24 @@ public class PaperFilter {
         }
 
     }
+
+    /**
+     *
+     * @param filterFile
+     * @throws Exception
+     */
+    public void setAnswerFilter(String filterFile) throws Exception{
+        this.answerFilter=new AnswerFilter(filterFile);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public AnswerFilter getAnswerFilter(){
+        return this.answerFilter;
+    }
+
     /**
      * 判断该字符串是够是试题的开始，也就是改行的下一行为正式的试题了，
      * 判断的regx字符串为"考试内容.",也即以"考试内容"开头的字符串
@@ -144,7 +164,7 @@ public class PaperFilter {
     private boolean comment(String s){
         if(s.isEmpty())
             return false;
-        Pattern p = Pattern.compile("#.");
+        Pattern p = Pattern.compile("#.*");
         if(p.matcher(s).find())
             return true;
         return false;
