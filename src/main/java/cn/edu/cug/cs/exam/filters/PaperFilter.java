@@ -1,6 +1,7 @@
 package cn.edu.cug.cs.exam.filters;
 
-import cn.edu.cug.cs.exam.questions.QuestionType;
+import cn.edu.cug.cs.exam.filters.*;
+import cn.edu.cug.cs.gtl.protos.QuestionType;
 import cn.edu.cug.cs.gtl.extractor.TextExtractor;
 
 import java.util.ArrayList;

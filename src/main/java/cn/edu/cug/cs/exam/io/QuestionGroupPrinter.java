@@ -1,4 +1,4 @@
-package cn.edu.cug.cs.exam.printer;
+package cn.edu.cug.cs.exam.io;
 
 import cn.edu.cug.cs.gtl.protos.Question;
 import cn.edu.cug.cs.gtl.protos.QuestionGroup;
