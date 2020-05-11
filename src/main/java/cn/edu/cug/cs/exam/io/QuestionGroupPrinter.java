@@ -8,6 +8,11 @@ import java.util.List;
 
 public class QuestionGroupPrinter {
 
+    /**
+     * 将试题组（一级题目，如单选题，多选题，简答题,应用题，综合题等）转成考试试卷字符串，不包含答案
+     * @param questionGroup
+     * @return
+     */
     public static String toString(QuestionGroup questionGroup) {
         StringBuilder sb = new StringBuilder();
         String order = questionGroup.getOrder();

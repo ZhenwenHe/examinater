@@ -8,6 +8,9 @@ import cn.edu.cug.cs.gtl.protos.QuestionBank;
 
 import java.io.*;
 
+/**
+ *
+ */
 public class PaperBanks {
     /**
      * 从试卷导入，试卷模板见2019A.doc和2019B.doc,为CUG的2014年模板
@@ -75,7 +78,10 @@ public class PaperBanks {
      */
     public static PaperBank load(String file) throws Exception{
         InputStream inputStream=new BufferedInputStream(new FileInputStream(file));
-        PaperBank pb= PaperBank.parseFrom(inputStream);
+        int len = (int) new File(file).length();
+        byte[] bs = new byte[len];
+        inputStream.read(bs);
+        PaperBank pb= PaperBank.parseFrom(bs);
         inputStream.close();
         return pb;
     }
@@ -89,7 +95,8 @@ public class PaperBanks {
      */
     public static void store(PaperBank qb, String file) throws Exception{
         OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file));
-        qb.writeTo(outputStream);
+        byte[] bs = qb.toByteArray();
+        outputStream.write(bs);
         outputStream.close();
     }
 

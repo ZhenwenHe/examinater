@@ -15,19 +15,27 @@ public class AnswerExtractor {
 
     PaperFilter filter=null;
 
+    /**
+     * 构造答案提取器
+     * @param filter 试卷过滤器，必须包含有答案过滤器
+     */
     public AnswerExtractor(PaperFilter filter) {
         this.filter = filter;
     }
 
+    /**
+     * 获取试卷过滤器
+     * @return
+     */
     public PaperFilter getFilter() {
         return filter;
     }
 
     /**
-     *
-     * @param paper
-     * @param answerFile
-     * @return
+     *为已经存在的试卷匹配答案
+     * @param paper 已经存在的试卷
+     * @param answerFile 改试卷匹配的答案文件，模板见answer_template.doc
+     * @return 返回一个新的完整的试卷
      * @throws Exception
      */
     public  Paper parseAnswers(Paper paper, String answerFile)throws Exception{
@@ -56,6 +64,11 @@ public class AnswerExtractor {
             return answer;
     }
 
+    /**
+     * 解析选择题答案
+     * @param text
+     * @return
+     */
     private  QuestionGroup parseSingleChoiceAnswers(ArrayList<String> text){
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();//(QT_SINGLE_CHOICE);
         qa.setQuestionType(QT_SINGLE_CHOICE);
@@ -100,6 +113,11 @@ public class AnswerExtractor {
         return qa.build();
     }
 
+    /**
+     * 解析简答题答案
+     * @param text
+     * @return
+     */
     private  QuestionGroup parseShortAnswerAnswers(ArrayList<String> text){
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();
         qa.setQuestionType(QT_SHORT_ANSWER);
@@ -144,6 +162,11 @@ public class AnswerExtractor {
         return qa.build();
     }
 
+    /**
+     * 解析应用题答案
+     * @param text
+     * @return
+     */
     private  QuestionGroup parseProblemSolvingAnswers(ArrayList<String> text){
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();
         qa.setQuestionType(QT_PROBLEM_SOLVING);
@@ -186,7 +209,11 @@ public class AnswerExtractor {
         return qa.build();
     }
 
-
+    /**
+     * 解析综合题答案
+     * @param text
+     * @return
+     */
     private  QuestionGroup parseSynthesizedAnswers(ArrayList<String> text){
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();
         qa.setQuestionType(QT_SYNTHESIZED);
@@ -210,42 +237,86 @@ public class AnswerExtractor {
         ++i;
         AnswerFilter answerFilter=this.getFilter().getAnswerFilter();
         ArrayList<Question> questionArrayList=new ArrayList<>();
+        StringBuilder totalAnswer=new StringBuilder();
+        StringBuilder totalAnalysis=new StringBuilder();
+        StringBuilder totalKnowledge=new StringBuilder();
+        StringBuilder totalChapter=new StringBuilder();
+        double totalDifficulty=0,difficulty=0;
         while(i<s && j<f.getQuestionCount()){
             ArrayList<String> sa = new ArrayList<>();
             i=questionAnswer(text,i,f.getQuestionCount(),sa);
+            difficulty=sa.get(1).isEmpty()?5.0:Double.valueOf(sa.get(1));
             questionArrayList.add(
                     Question
                     .newBuilder()
                     .setQuestionType(QT_PROBLEM_SOLVING)
                     .setAnswerText(sa.get(0))
-                    .setDifficulty(sa.get(1).isEmpty()?5.0:Double.valueOf(sa.get(1)))
+                    .setDifficulty(difficulty)
                     .setAnalysis(sa.get(2))
                     .setQuestionTypeName(sa.get(3))
                     .setKnowledge(sa.get(4))
                     .setChapter(sa.get(5))
                     .build()
             );
+            if(!sa.get(0).isEmpty()) {
+                totalAnswer.append(sa.get(0));
+                totalAnswer.append("\n");
+            }
+            if(!sa.get(2).isEmpty()){
+                totalAnalysis.append(sa.get(2));
+                totalAnalysis.append("\n");
+            }
+            if(!sa.get(4).isEmpty()) {
+                totalKnowledge.append(sa.get(4));
+                totalKnowledge.append("\n");
+            }
+            if(!sa.get(5).isEmpty()) {
+                totalChapter.append(sa.get(5));
+                totalChapter.append("\n");
+            }
+            totalDifficulty+=difficulty;
             j++;
         }
+
 
         qa.addQuestion(Question
                 .newBuilder()
                 .setQuestionType(QT_SYNTHESIZED)
                 .setQuestionTypeName("综合题")
+                .setAnswerText(totalAnswer.toString())
+                .setAnalysis(totalAnalysis.toString())
+                .setKnowledge(totalKnowledge.toString())
+                .setChapter(totalChapter.toString())
+                .setDifficulty(totalDifficulty/f.getQuestionCount())
                 .addAllSubQuestion(questionArrayList)
                 .build());
 
         return qa.build();
     }
 
+    /**
+     * 解析多选题答案
+     * @param text
+     * @return
+     */
     private static QuestionGroup parseMultiChoiceAnswers(ArrayList<String> text){
         return null;
     }
 
+    /**
+     * 解析判断题答案
+     * @param text
+     * @return
+     */
     private static QuestionGroup parseTrueFalseAnswers(ArrayList<String> text){
         return null;
     }
 
+    /**
+     * 解析填空题答案
+     * @param text
+     * @return
+     */
     private static QuestionGroup parseBlankFillingAnswers(ArrayList<String> text){
         return null;
     }
@@ -296,6 +367,20 @@ public class AnswerExtractor {
     }
 
 
+    /**
+     * 对一个二级题目的答案进行解析
+     * @param text 整个答案文档的字符串行
+     * @param i 从第i行开始扫描
+     * @param questionCount 需要扫描的答案题目个数
+     * @param stringArrayList 返回的扫描结果，按照答案，难易程度，答案解析，题型，知识点和所属章节返回字符串数组
+     *         stringArrayList.add(szAnswerText);
+     *         stringArrayList.add(szDifficultyText);
+     *         stringArrayList.add(szAnalysisText);
+     *         stringArrayList.add(szTypeText);
+     *         stringArrayList.add(szKnowledgeText);
+     *         stringArrayList.add(szChapterText);
+     * @return 扫描结束的行
+     */
     private int questionAnswer(ArrayList<String> text, int i, int questionCount,ArrayList<String> stringArrayList){
         AnswerFilter answerFilter=this.getFilter().getAnswerFilter();
         String line =null;
@@ -353,6 +438,12 @@ public class AnswerExtractor {
         return i;
     }
 
+    /**
+     * 将题目与答案合并
+     * @param question
+     * @param answer
+     * @return
+     */
     private Question mergeQuestion(Question question, Question answer){
         Question.Builder builder= mergeSimpleQuestion(question,answer);
         if(question.getQuestionType()==QT_SYNTHESIZED){
@@ -367,6 +458,12 @@ public class AnswerExtractor {
         return builder.build();
     }
 
+    /**
+     * 将题目与答案合并，不处理综合题，供mergeQuestion函数调用。
+     * @param question
+     * @param answer
+     * @return
+     */
     private Question.Builder mergeSimpleQuestion(Question question, Question answer){
         return question.
                 toBuilder()
@@ -378,6 +475,12 @@ public class AnswerExtractor {
                 .setChapter(answer.getChapter());
     }
 
+    /**
+     * 将试题组和答案组合并
+     * @param question
+     * @param answer
+     * @return
+     */
     private QuestionGroup mergeQuestionGroup(QuestionGroup question, QuestionGroup answer){
         int c = question.getQuestionCount();
         QuestionGroup.Builder builder = question.toBuilder();
@@ -390,6 +493,12 @@ public class AnswerExtractor {
         return builder.build();
     }
 
+    /**
+     * 将试卷和答案合并
+     * @param question
+     * @param answer
+     * @return
+     */
     private Paper mergePaper(Paper question, Paper answer){
         int c = question.getQuestionGroupCount();
         Paper.Builder builder = question.toBuilder();

@@ -4,11 +4,16 @@ import cn.edu.cug.cs.exam.filters.PaperFilter;
 import cn.edu.cug.cs.exam.io.PaperExtractor;
 import cn.edu.cug.cs.exam.io.QuestionPrinter;
 import cn.edu.cug.cs.gtl.protos.*;
+import cn.edu.cug.cs.gtl.util.StringUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.List;
 
+/**
+ *
+ */
 public class QuestionBanks {
 
     /**
@@ -45,12 +50,27 @@ public class QuestionBanks {
 
     /**
      * 将Paper对象中的试题导入试题库
-     * @param paper
-     * @param qb
+     * @param paper 试卷对象
+     * @param qb 试题库，如果为空，则直接返回新建的试题库对象
+     *
      */
-    public static QuestionBank importFromPaper(Paper paper, QuestionBank qb){
+
+    /**
+     * 将Paper对象中的试题导入试题库
+     * @param paper
+     * @param qb 试题库，如果为空，则直接返回新建的试题库对象
+     * @return 返回添加试卷后的题库，如果为空，则直接返回新建的试题库
+     */
+    public static QuestionBank importFromPaper(@NotNull Paper paper, QuestionBank qb){
+        QuestionBank.Builder builder=null;
+        if(qb==null){
+            builder=QuestionBank.newBuilder();
+        }
+        else{
+            builder=qb.toBuilder();
+        }
         List<QuestionGroup> lqg=paper.getQuestionGroupList();
-        return qb.toBuilder().addAllQuestionGroup(lqg).build();
+        return builder.addAllQuestionGroup(lqg).build();
     }
 
     /**
@@ -73,16 +93,18 @@ public class QuestionBanks {
                 sb.append("、");
                 sb.append(QuestionPrinter.exportToChaoXing(q));
                 sb.append("\n");
-                xwpfDocument.createParagraph().createRun().setText(sb.toString());
+                String [] sa = StringUtils.split(sb.toString(),"\n");
+                for(String s: sa)
+                    if(!s.isEmpty())
+                        xwpfDocument.createParagraph().createRun().setText(s);
                 i++;
+                xwpfDocument.createParagraph().createRun().setText("");
             }
         }
-        try (FileOutputStream out = new FileOutputStream("file")) {
+        try (FileOutputStream out = new FileOutputStream(file)) {
             xwpfDocument.write(out);
         }
     }
-
-    //试题查询（按照题型、难易程度、知识点等查询）
 
     /**
      * 加载试题库，从外部文件中加载,qbb
@@ -91,8 +113,11 @@ public class QuestionBanks {
      * @throws Exception
      */
     public static QuestionBank load(String file) throws Exception{
+        File f = new File(file);
+        byte[] bytes = new byte[(int)f.length()];
         InputStream inputStream=new BufferedInputStream(new FileInputStream(file));
-        return QuestionBank.parseFrom(inputStream);
+        inputStream.read(bytes);
+        return QuestionBank.parseFrom(bytes);
     }
 
 
@@ -104,9 +129,13 @@ public class QuestionBanks {
      */
     public static void store(QuestionBank qb, String file) throws Exception{
        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file));
-       qb.writeTo(outputStream);
+       byte[] bytes=qb.toByteArray();
+       outputStream.write(bytes);
+       outputStream.close();
     }
+
+
     //按照规则生成试卷
     //去除重复题目
-
+    //试题查询（按照题型、难易程度、知识点等查询）
 }

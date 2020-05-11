@@ -16,13 +16,22 @@ public class PaperExtractor {
 
     PaperFilter filter=null;
 
+    /**
+     * 构造试卷提取器
+     * @param filter 试卷过滤器，可以不包含答案过滤器
+     */
     public PaperExtractor(PaperFilter filter) {
         this.filter = filter;
     }
 
+    /**
+     * 获取试卷过滤器
+     * @return
+     */
     public PaperFilter getFilter() {
         return filter;
     }
+
 
     /**
      * 从试卷文本中解析题目，并组成试卷返回。
@@ -101,8 +110,6 @@ public class PaperExtractor {
         }
         return ss;
     }
-
-
 
     /**
      * 从试卷文本中解析题目，并返回。
@@ -492,8 +499,5 @@ public class PaperExtractor {
 
         return qa.build();
     }
-
-
-
 
 }

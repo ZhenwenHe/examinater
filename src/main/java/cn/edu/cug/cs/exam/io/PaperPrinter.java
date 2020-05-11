@@ -4,6 +4,11 @@ import cn.edu.cug.cs.gtl.protos.QuestionGroup;
 import cn.edu.cug.cs.gtl.protos.Paper;
 
 public class PaperPrinter {
+    /**
+     * 将试卷转成字符串，不包含答案
+     * @param paper
+     * @return
+     */
     public static String toString(Paper paper) {
         StringBuilder sb = new StringBuilder();
         int i=0;
@@ -33,6 +38,11 @@ public class PaperPrinter {
         return sb.toString();
     }
 
+    /**
+     * 将试卷中题目序号转换成试卷内题目编号
+     * @param i
+     * @return
+     */
     public static String indexToOrder(int i){
         switch (i){
             case 0: return "一";
