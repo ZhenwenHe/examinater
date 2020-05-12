@@ -1,6 +1,7 @@
 package cn.edu.cug.cs.exam.io;
 
 import cn.edu.cug.cs.exam.filters.*;
+import cn.edu.cug.cs.gtl.common.Pair;
 import cn.edu.cug.cs.gtl.extractor.TextExtractor;
 import cn.edu.cug.cs.gtl.protos.Paper;
 import cn.edu.cug.cs.gtl.protos.Question;
@@ -11,6 +12,9 @@ import java.util.regex.Pattern;
 
 import static cn.edu.cug.cs.gtl.protos.QuestionType.*;
 
+/**
+ *
+ */
 public class AnswerExtractor {
 
     PaperFilter filter=null;
@@ -41,19 +45,20 @@ public class AnswerExtractor {
     public  Paper parseAnswers(Paper paper, String answerFile)throws Exception{
         ArrayList<String> text = parseText(answerFile);
         Paper.Builder builder = Paper.newBuilder();
-        QuestionGroup qg = parseSingleChoiceAnswers(text);
+        Pair<Integer,Integer> range = new Pair<>();
+        QuestionGroup qg = parseSingleChoiceAnswers(text,range);
         if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseMultiChoiceAnswers(text);
+        qg = parseMultiChoiceAnswers(text,range);
         if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseBlankFillingAnswers(text);
+        qg = parseBlankFillingAnswers(text,range);
         if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseTrueFalseAnswers(text);
+        qg = parseTrueFalseAnswers(text,range);
         if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseShortAnswerAnswers(text);
+        qg = parseShortAnswerAnswers(text,range);
         if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseProblemSolvingAnswers(text);
+        qg = parseProblemSolvingAnswers(text,range);
         if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseSynthesizedAnswers(text);
+        qg = parseSynthesizedAnswers(text,range);
         if(qg!=null) builder.addQuestionGroup(qg);
 
         Paper answer= builder.build();
@@ -67,9 +72,10 @@ public class AnswerExtractor {
     /**
      * 解析选择题答案
      * @param text
+     * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private  QuestionGroup parseSingleChoiceAnswers(ArrayList<String> text){
+    private  QuestionGroup parseSingleChoiceAnswers(ArrayList<String> text, Pair<Integer,Integer> range){
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();//(QT_SINGLE_CHOICE);
         qa.setQuestionType(QT_SINGLE_CHOICE);
         //处理一级大题的题干信息
@@ -77,6 +83,7 @@ public class AnswerExtractor {
         if(f==null) return qa.build();
         //提取选择题大题题干信息，获取选择题的分值，总分值和题目个数
         int i=0;
+        int start, end=-1;
         int s = text.size();
         String line =null;
         for(i=0;i<s;++i){
@@ -87,7 +94,16 @@ public class AnswerExtractor {
                 break;
             }
         }
-        if(i==s) return qa.build();
+        start=i;
+
+        if(i==s) {
+            end =i;
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setKey(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
         //开始提取每个选择题的答案
         int j=0;
         ++i;
@@ -109,6 +125,11 @@ public class AnswerExtractor {
             );
             j++;
         }
+        end =i;
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setKey(Integer.valueOf(end));
+        }
         assert qa.getQuestionCount()==f.getQuestionCount();
         return qa.build();
     }
@@ -116,14 +137,22 @@ public class AnswerExtractor {
     /**
      * 解析简答题答案
      * @param text
+     * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private  QuestionGroup parseShortAnswerAnswers(ArrayList<String> text){
+    private  QuestionGroup parseShortAnswerAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();
         qa.setQuestionType(QT_SHORT_ANSWER);
         //处理一级大题的题干信息
         ShortAnswerQuestionFilter f =(ShortAnswerQuestionFilter) filter.getQuestionFilter(QT_SHORT_ANSWER);
-        if(f==null) return qa.build();
+        int start =0,end=-1;
+        if(f==null){
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setKey(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
         //提取一级题的题干信息，获分值，总分值和题目个数
         int i=0;
         int s = text.size();
@@ -136,7 +165,15 @@ public class AnswerExtractor {
                 break;
             }
         }
-        if(i==s) return qa.build();
+        if(i==s) {
+            if(range!=null) {
+                start=i;
+                range.setKey(Integer.valueOf(start));
+                range.setKey(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
+        start =i;
         //开始提取每个二级简答题的答案
         int j=0;
         ++i;
@@ -158,6 +195,11 @@ public class AnswerExtractor {
             );
             j++;
         }
+        end =i;
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setKey(Integer.valueOf(end));
+        }
         assert qa.getQuestionCount()==f.getQuestionCount();
         return qa.build();
     }
@@ -165,14 +207,22 @@ public class AnswerExtractor {
     /**
      * 解析应用题答案
      * @param text
+     * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private  QuestionGroup parseProblemSolvingAnswers(ArrayList<String> text){
+    private  QuestionGroup parseProblemSolvingAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
+        int start=0,end=-1;
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();
         qa.setQuestionType(QT_PROBLEM_SOLVING);
         //处理一级大题的题干信息
         ProblemSolvingQuestionFilter f =(ProblemSolvingQuestionFilter) filter.getQuestionFilter(QT_PROBLEM_SOLVING);
-        if(f==null) return qa.build();
+        if(f==null){
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setKey(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
         //提取一级大题的题干信息，获取选择题的分值，总分值和题目个数
         int i=0;
         int s = text.size();
@@ -184,7 +234,15 @@ public class AnswerExtractor {
                 break;
             }
         }
-        if(i==s) return qa.build();
+        if(i==s) {
+            start=i;
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setKey(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
+        start =i;
         //开始提取每个二级题的答案
         int j=0;
         ++i;
@@ -205,6 +263,12 @@ public class AnswerExtractor {
             );
             j++;
         }
+
+        end =i;
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setKey(Integer.valueOf(end));
+        }
         assert qa.getQuestionCount()==f.getQuestionCount();
         return qa.build();
     }
@@ -212,14 +276,22 @@ public class AnswerExtractor {
     /**
      * 解析综合题答案
      * @param text
+     * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private  QuestionGroup parseSynthesizedAnswers(ArrayList<String> text){
+    private  QuestionGroup parseSynthesizedAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
+        int start=0,end=-1;
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();
         qa.setQuestionType(QT_SYNTHESIZED);
         //处理一级大题的题干信息
         SynthesizedQuestionFilter f =(SynthesizedQuestionFilter) filter.getQuestionFilter(QT_SYNTHESIZED);
-        if(f==null) return qa.build();
+        if(f==null) {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setKey(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
         //提取一级大题的题干信息，获取分值，总分值和题目个数
         int i=0;
         int s = text.size();
@@ -231,7 +303,16 @@ public class AnswerExtractor {
                 break;
             }
         }
-        if(i==s) return qa.build();
+        if(i==s) {
+            start =i;
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setKey(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
+
+        start=i;
         //开始提取二级题的答案
         int j=0;
         ++i;
@@ -291,33 +372,42 @@ public class AnswerExtractor {
                 .addAllSubQuestion(questionArrayList)
                 .build());
 
+        end =i;
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setKey(Integer.valueOf(end));
+        }
+
         return qa.build();
     }
 
     /**
      * 解析多选题答案
      * @param text
+     * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private static QuestionGroup parseMultiChoiceAnswers(ArrayList<String> text){
+    private static QuestionGroup parseMultiChoiceAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
         return null;
     }
 
     /**
      * 解析判断题答案
      * @param text
+     * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private static QuestionGroup parseTrueFalseAnswers(ArrayList<String> text){
+    private static QuestionGroup parseTrueFalseAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
         return null;
     }
 
     /**
      * 解析填空题答案
      * @param text
+     * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private static QuestionGroup parseBlankFillingAnswers(ArrayList<String> text){
+    private static QuestionGroup parseBlankFillingAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
         return null;
     }
 
