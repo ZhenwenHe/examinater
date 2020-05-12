@@ -18,7 +18,7 @@ public class PaperExtractorTest {
     String syFilterFile = "dat/synthesized_filters.txt";
     String answerFilterFile = "dat/answer_filters.txt";
     //String inputFile = "dat/paper_template.doc";
-    String inputFile = "dat/2019A.doc";
+    String inputFile = "dat/paper_template2.doc";
 
     @Test
     public void parsePaper() {
