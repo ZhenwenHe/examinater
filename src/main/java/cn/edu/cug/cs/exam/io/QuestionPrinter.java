@@ -48,7 +48,29 @@ public class QuestionPrinter {
     }
 
     public static String multiChoiceToChaoXing(Question q){
-        return null;
+        StringBuilder sb=new StringBuilder();
+        //题干、选项、答案、难易程度、答案解析、题型，相互之间用回车隔开
+        //答案：C
+        //难易程度：中
+        //答案解析：花间集的答案解析
+        //题型：多选题
+        sb.append("{\n");
+        sb.append(toString(q));
+        sb.append("\n}\n");
+        sb.append("{\n答案：\n");
+        sb.append(q.getAnswerText());
+        sb.append("\n}\n");
+        sb.append("难易程度：");
+        //难度系数，1-3，易，4-6，中，7-9，难
+        sb.append(difficultyToString(q.getDifficulty()));
+        sb.append("\n");
+        sb.append("答案解析：");
+        sb.append(q.getAnalysis());
+        sb.append("\n");
+        sb.append("题型：");
+        sb.append(typeToString(q.getQuestionType()));
+        sb.append("\n");
+        return sb.toString();
     }
 
     public static String blankFillingToChaoXing(Question q){
@@ -78,7 +100,21 @@ public class QuestionPrinter {
     }
 
     public static String tureFalseToChaoXing(Question q){
-        return null;
+        StringBuilder sb=new StringBuilder(toString(q));
+        sb.append("答案：");
+        sb.append(q.getAnswerText());
+        sb.append("\n");
+        sb.append("难易程度：");
+        //难度系数，1-3，易，4-6，中，7-9，难
+        sb.append(difficultyToString(q.getDifficulty()));
+        sb.append("\n");
+        sb.append("答案解析：");
+        sb.append(q.getAnalysis());
+        sb.append("\n");
+        sb.append("题型：");
+        sb.append(typeToString(q.getQuestionType()));
+        sb.append("\n");
+        return sb.toString();
     }
 
     public static String shortAnswerToChaoXing(Question q){
@@ -189,6 +225,14 @@ public class QuestionPrinter {
                 sz= synthesizedQuestionToString(q);
                 break;
             }
+            case QT_MULTI_CHOICE:{
+                sz= multiChoiceQuestionToString(q);
+                break;
+            }
+            case QT_TRUE_FALSE:{
+                sz= trueFalseQuestionToString(q);
+                break;
+            }
         }
         return sz;
     }
@@ -206,11 +250,23 @@ public class QuestionPrinter {
     }
 
     /**
-     * 简答题转成字符串，不含答案
+     * 填空题转成字符串，不含答案
      * @param q
      * @return
      */
     private static String blankFillingQuestionToString(Question q) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(q.getQuestionText(0));
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    /**
+     * 判断题转成字符串，不含答案
+     * @param q
+     * @return
+     */
+    private static String trueFalseQuestionToString(Question q) {
         StringBuilder sb = new StringBuilder();
         sb.append(q.getQuestionText(0));
         sb.append("\n");
@@ -269,6 +325,30 @@ public class QuestionPrinter {
      */
     private static String singleChoiceQuestionToString(Question q) {
 
+        StringBuilder sb = new StringBuilder();
+        sb.append(q.getQuestionText(0));
+        sb.append("\n");
+        sb.append("A.");
+        sb.append(q.getQuestionText(1));
+        sb.append("\n");
+        sb.append("B.");
+        sb.append(q.getQuestionText(2));
+        sb.append("\n");
+        sb.append("C.");
+        sb.append(q.getQuestionText(3));
+        sb.append("\n");
+        sb.append("D.");
+        sb.append(q.getQuestionText(4));
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    /**
+     * 多选题转成字符串，不含答案
+     * @param q
+     * @return
+     */
+    private static String multiChoiceQuestionToString(Question q) {
         StringBuilder sb = new StringBuilder();
         sb.append(q.getQuestionText(0));
         sb.append("\n");

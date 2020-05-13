@@ -93,15 +93,20 @@ public class MainApp extends JFrame implements ActionListener {
     private void initializeConfigure(){
         String filterFile = "dat/paper_filters.txt";
         String scFilterFile = "dat/singlechoice_filters.txt";
+        String mcFilterFile = "dat/multichoice_filters.txt";
+        String bfFilterFile = "dat/blankfilling_filters.txt";
+        String tfFilterFile = "dat/truefalse_filters.txt";
         String saFilterFile = "dat/shortanswer_filters.txt";
         String psFilterFile = "dat/problemsolving_filters.txt";
         String syFilterFile = "dat/synthesized_filters.txt";
         String answerFilterFile = "dat/answer_filters.txt";
-        String bfFilterFile = "dat/blankfilling_filters.txt";
+
         try {
             paperFilter= new PaperFilter(filterFile);
             paperFilter.addQuestionFilter(scFilterFile, QuestionType.QT_SINGLE_CHOICE);
+            paperFilter.addQuestionFilter(mcFilterFile, QuestionType.QT_MULTI_CHOICE);
             paperFilter.addQuestionFilter(bfFilterFile, QuestionType.QT_BLANK_FILLING);
+            paperFilter.addQuestionFilter(tfFilterFile, QuestionType.QT_TRUE_FALSE);
             paperFilter.addQuestionFilter(saFilterFile, QuestionType.QT_SHORT_ANSWER);
             paperFilter.addQuestionFilter(psFilterFile, QuestionType.QT_PROBLEM_SOLVING);
             paperFilter.addQuestionFilter(syFilterFile, QuestionType.QT_SYNTHESIZED);

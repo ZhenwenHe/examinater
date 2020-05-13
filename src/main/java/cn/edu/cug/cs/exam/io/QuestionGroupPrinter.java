@@ -94,6 +94,21 @@ public class QuestionGroupPrinter {
                 break;
             }
             case QT_MULTI_CHOICE:{
+                sb.append("多选题(");
+                sb.append("共");
+                sb.append(String.valueOf(questionGroup.getQuestionCount()));
+                sb.append("题，每题");
+                sb.append(String.valueOf(questionGroup.getScorePreQuestion()));
+                sb.append("分，共");
+                sb.append(String.valueOf(questionGroup.getTotalScore()));
+                sb.append("分)\n");
+                int i=1;
+                for(Question q: lq){
+                    sb.append(String.valueOf(i));
+                    sb.append(".");
+                    sb.append(QuestionPrinter.toString(q));
+                    i++;
+                }
                 break;
             }
             case QT_BLANK_FILLING:{
@@ -116,6 +131,22 @@ public class QuestionGroupPrinter {
                 break;
             }
             case QT_TRUE_FALSE:{
+                sb.append("判断题(");
+                sb.append("共");
+                sb.append(String.valueOf(questionGroup.getQuestionCount()));
+                sb.append("题，每题");
+                sb.append(String.valueOf(questionGroup.getScorePreQuestion()));
+                sb.append("分，共");
+                sb.append(String.valueOf(questionGroup.getTotalScore()));
+                sb.append("分)\n");
+                int i=1;
+                for(Question q: lq){
+                    sb.append(String.valueOf(i));
+                    sb.append(".");
+                    //sb.append(q.toString());
+                    sb.append(QuestionPrinter.toString(q));
+                    i++;
+                }
                 break;
             }
         }

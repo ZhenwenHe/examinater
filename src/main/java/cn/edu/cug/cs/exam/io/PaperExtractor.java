@@ -239,7 +239,61 @@ public class PaperExtractor {
      * @return
      */
     private QuestionGroup parseMultiChoiceQuestions(ArrayList<String> text,Pair<Integer,Integer> range){
-        return null;
+        QuestionGroup.Builder qa =QuestionGroup.newBuilder();
+        qa.setQuestionType(QT_MULTI_CHOICE);
+        MultiChoiceQuestionFilter f =(MultiChoiceQuestionFilter) filter.getQuestionFilter(QT_MULTI_CHOICE);
+        if(f==null) {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
+        //提取选择题大题题干信息，获取选择题的分值，总分值和题目个数
+        int i=0;
+        int start, end=-1;
+        int s = text.size();
+        String line =null;
+        for(i=0;i<s;++i){
+            line = text.get(i);
+            if(f.begin(line)){
+                break;
+            }
+        }
+        start=i;
+        //开始提取每个选择题
+        int j=0;
+        while(i<s && j<f.getQuestionCount()){
+            i++;
+            line = text.get(i);
+            //获取题干信息
+            String qt = f.questionText(line);
+            if(qt.isEmpty()==false){
+                ArrayList<String> als = new ArrayList<>();
+                qt = qt.trim();
+                als.add(qt);
+                i=f.choiceTexts(text,i+1,als);
+                qa.addQuestion(Question
+                        .newBuilder()
+                        .setQuestionType(QT_MULTI_CHOICE)
+                        .setScore(f.getScorePreQuestion())
+                        .setAnswerText("")
+                        .addAllQuestionText(als)
+                        .build()
+                );
+
+                j++;
+            }
+        }
+        end =Math.min(i+1,text.size());
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setValue(Integer.valueOf(end));
+        }
+        qa.setScorePreQuestion(f.getScorePreQuestion());
+        qa.setTotalScore(f.getTotalScore());
+        assert qa.getQuestionCount()==f.getQuestionCount();
+        return qa.build();
     }
 
     /**
@@ -249,7 +303,59 @@ public class PaperExtractor {
      * @return
      */
     private QuestionGroup parseTrueFalseQuestions(ArrayList<String> text,Pair<Integer,Integer> range){
-        return null;
+        QuestionGroup.Builder qa =  QuestionGroup.newBuilder();
+        qa.setQuestionType(QT_TRUE_FALSE);
+        TrueFalseQuestionFilter f =(TrueFalseQuestionFilter) filter.getQuestionFilter(QT_TRUE_FALSE);
+        if(f==null) {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
+        //提取简答题大题题干信息，获取简答题的分值，总分值和题目个数
+        int i=0;
+        int start,end=-1;
+        int s = text.size();
+        String line =null;
+        for(i=0;i<s;++i){
+            line = text.get(i);
+            if(f.begin(line)){
+                break;
+            }
+        }
+        start =i;
+        //开始提取每个填空题
+        int j=0;
+        while(i<s && j<f.getQuestionCount()){
+            i++;
+            line = text.get(i);
+            //获取题干信息
+            String qt = f.questionText(line);
+            if(qt.isEmpty()==false){
+                ArrayList<String> als = new ArrayList<>();
+                qt = qt.trim();
+                als.add(qt);
+                qa.addQuestion(Question
+                        .newBuilder()
+                        .setQuestionType(QT_TRUE_FALSE)
+                        .setScore(f.getScorePreQuestion())
+                        .setAnswerText("")
+                        .addAllQuestionText(als)
+                        .build()
+                );
+                j++;
+            }
+        }
+        end =Math.min(i+1,text.size());
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setValue(Integer.valueOf(end));
+        }
+        qa.setScorePreQuestion(f.getScorePreQuestion());
+        qa.setTotalScore(f.getTotalScore());
+
+        return qa.build();
     }
 
     /**

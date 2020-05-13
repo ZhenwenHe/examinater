@@ -14,6 +14,8 @@ public class AnswerExtractorTest {
 
     String filterFile = "dat/paper_filters.txt";
     String scFilterFile = "dat/singlechoice_filters.txt";
+    String mcFilterFile = "dat/multichoice_filters.txt";
+    String tfFilterFile = "dat/truefalse_filters.txt";
     String saFilterFile = "dat/shortanswer_filters.txt";
     String psFilterFile = "dat/problemsolving_filters.txt";
     String syFilterFile = "dat/synthesized_filters.txt";
@@ -23,17 +25,24 @@ public class AnswerExtractorTest {
     String paperFile = "dat/paper_template3.doc";
 
 
+    private PaperFilter initialFilters() throws Exception{
+        PaperFilter filter= new PaperFilter(filterFile);
+        filter.addQuestionFilter(scFilterFile, QuestionType.QT_SINGLE_CHOICE);
+        filter.addQuestionFilter(mcFilterFile, QuestionType.QT_MULTI_CHOICE);
+        filter.addQuestionFilter(bfFilterFile, QuestionType.QT_BLANK_FILLING);
+        filter.addQuestionFilter(saFilterFile, QuestionType.QT_SHORT_ANSWER);
+        filter.addQuestionFilter(psFilterFile, QuestionType.QT_PROBLEM_SOLVING);
+        filter.addQuestionFilter(syFilterFile, QuestionType.QT_SYNTHESIZED);
+        filter.addQuestionFilter(tfFilterFile, QuestionType.QT_TRUE_FALSE);
+        filter.setAnswerFilter(answerFilterFile);
+        return filter;
+    }
+
     @Test
     public void parseText() {
         try {
             //read filters
-            PaperFilter filter= new PaperFilter(filterFile);
-            filter.addQuestionFilter(scFilterFile, QuestionType.QT_SINGLE_CHOICE);
-            filter.addQuestionFilter(bfFilterFile, QuestionType.QT_BLANK_FILLING);
-            filter.addQuestionFilter(saFilterFile, QuestionType.QT_SHORT_ANSWER);
-            filter.addQuestionFilter(psFilterFile, QuestionType.QT_PROBLEM_SOLVING);
-            filter.addQuestionFilter(syFilterFile, QuestionType.QT_SYNTHESIZED);
-            filter.setAnswerFilter(answerFilterFile);
+            PaperFilter filter= initialFilters();
 
             AnswerExtractor extractor = new AnswerExtractor(filter);
             //read paper
@@ -50,13 +59,7 @@ public class AnswerExtractorTest {
     public void parseAnswers() {
         try {
             //read filters
-            PaperFilter filter= new PaperFilter(filterFile);
-            filter.addQuestionFilter(scFilterFile, QuestionType.QT_SINGLE_CHOICE);
-            filter.addQuestionFilter(bfFilterFile, QuestionType.QT_BLANK_FILLING);
-            filter.addQuestionFilter(saFilterFile, QuestionType.QT_SHORT_ANSWER);
-            filter.addQuestionFilter(psFilterFile, QuestionType.QT_PROBLEM_SOLVING);
-            filter.addQuestionFilter(syFilterFile, QuestionType.QT_SYNTHESIZED);
-            filter.setAnswerFilter(answerFilterFile);
+            PaperFilter filter= initialFilters();
 
             PaperExtractor  paperExtractor=new PaperExtractor(filter);
             Paper questionPaper = paperExtractor.parsePaper(paperFile);

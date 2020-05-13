@@ -422,8 +422,70 @@ public class AnswerExtractor {
      * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private static QuestionGroup parseMultiChoiceAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
-        return null;
+    private  QuestionGroup parseMultiChoiceAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
+        QuestionGroup.Builder qa =QuestionGroup.newBuilder();//(QT_SINGLE_CHOICE);
+        qa.setQuestionType(QT_MULTI_CHOICE);
+        //处理一级大题的题干信息
+        MultiChoiceQuestionFilter f =(MultiChoiceQuestionFilter) filter.getQuestionFilter(QT_MULTI_CHOICE);
+        if(f==null)  {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
+        //提取选择题大题题干信息，获取选择题的分值，总分值和题目个数
+        int i=0;
+        int start, end=-1;
+        int s = text.size();
+        String line =null;
+        for(i=0;i<s;++i){
+            line = text.get(i);
+            if(f.begin(line)){
+                qa.setScorePreQuestion(f.getScorePreQuestion());
+                qa.setTotalScore(f.getTotalScore());
+                break;
+            }
+        }
+        start=i;
+
+        if(i==s) {
+            start =i;
+            end =Math.min(i+1,text.size());
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setValue(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
+        //开始提取每个选择题的答案
+        int j=0;
+        ++i;
+        AnswerFilter answerFilter=this.getFilter().getAnswerFilter();
+        while(i<s && j<f.getQuestionCount()){
+            ArrayList<String> sa = new ArrayList<>();
+            i=questionAnswer(text,i,f.getQuestionCount(),sa);
+            qa.addQuestion(Question
+                    .newBuilder()
+                    .setQuestionType(QT_MULTI_CHOICE)
+                    .setScore(f.getScorePreQuestion())
+                    .setAnswerText(sa.get(0))
+                    .setDifficulty(sa.get(1).isEmpty()?5.0:Double.valueOf(sa.get(1)))
+                    .setAnalysis(sa.get(2))
+                    .setQuestionTypeName(sa.get(3))
+                    .setKnowledge(sa.get(4))
+                    .setChapter(sa.get(5))
+                    .build()
+            );
+            j++;
+        }
+        end =Math.min(i,text.size());
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setValue(Integer.valueOf(end));
+        }
+
+        return qa.build();
     }
 
     /**
@@ -432,8 +494,69 @@ public class AnswerExtractor {
      * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private static QuestionGroup parseTrueFalseAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
-        return null;
+    private  QuestionGroup parseTrueFalseAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
+        QuestionGroup.Builder qa =QuestionGroup.newBuilder();
+        qa.setQuestionType(QT_TRUE_FALSE);
+        //处理一级大题的题干信息
+        TrueFalseQuestionFilter f =(TrueFalseQuestionFilter) filter.getQuestionFilter(QT_TRUE_FALSE);
+        int start =0,end=-1;
+        if(f==null){
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
+        //提取一级题的题干信息，获分值，总分值和题目个数
+        int i=0;
+        int s = text.size();
+        String line =null;
+        for(i=0;i<s;++i){
+            line = text.get(i);
+            if(f.begin(line)){
+                qa.setScorePreQuestion(f.getScorePreQuestion());
+                qa.setTotalScore(f.getTotalScore());
+                break;
+            }
+        }
+        if(i==s) {
+            start =i;
+            end =Math.min(i,text.size());
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setValue(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
+        start =i;
+        //开始提取每个二级题的答案
+        int j=0;
+        ++i;
+        AnswerFilter answerFilter=this.getFilter().getAnswerFilter();
+        while(i<s && j<f.getQuestionCount()){
+            ArrayList<String> sa = new ArrayList<>();
+            i=questionAnswer(text,i,f.getQuestionCount(),sa);
+            qa.addQuestion(Question
+                    .newBuilder()
+                    .setQuestionType(QT_TRUE_FALSE)
+                    .setScore(f.getScorePreQuestion())
+                    .setAnswerText(sa.get(0))
+                    .setDifficulty(sa.get(1).isEmpty()?5.0:Double.valueOf(sa.get(1)))
+                    .setAnalysis(sa.get(2))
+                    .setQuestionTypeName(sa.get(3))
+                    .setKnowledge(sa.get(4))
+                    .setChapter(sa.get(5))
+                    .build()
+            );
+            j++;
+        }
+        end =Math.min(i,text.size());
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setValue(Integer.valueOf(end));
+        }
+
+        return qa.build();
     }
 
     /**
