@@ -442,8 +442,69 @@ public class AnswerExtractor {
      * @param range 返回对应题型答案开始行和结束行[start,end)
      * @return
      */
-    private static QuestionGroup parseBlankFillingAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
-        return null;
+    private  QuestionGroup parseBlankFillingAnswers(ArrayList<String> text,Pair<Integer,Integer> range){
+        QuestionGroup.Builder qa =QuestionGroup.newBuilder();
+        qa.setQuestionType(QT_BLANK_FILLING);
+        //处理一级大题的题干信息
+        BlankFillingQuestionFilter f =(BlankFillingQuestionFilter) filter.getQuestionFilter(QT_BLANK_FILLING);
+        int start =0,end=-1;
+        if(f==null){
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
+        //提取一级题的题干信息，获分值，总分值和题目个数
+        int i=0;
+        int s = text.size();
+        String line =null;
+        for(i=0;i<s;++i){
+            line = text.get(i);
+            if(f.begin(line)){
+                qa.setScorePreQuestion(f.getScorePreQuestion());
+                qa.setTotalScore(f.getTotalScore());
+                break;
+            }
+        }
+        if(i==s) {
+            start =i;
+            end =Math.min(i,text.size());
+            if(range!=null) {
+                range.setKey(Integer.valueOf(start));
+                range.setValue(Integer.valueOf(end));
+            }
+            return qa.build();
+        }
+        start =i;
+        //开始提取每个二级题的答案
+        int j=0;
+        ++i;
+        AnswerFilter answerFilter=this.getFilter().getAnswerFilter();
+        while(i<s && j<f.getQuestionCount()){
+            ArrayList<String> sa = new ArrayList<>();
+            i=questionAnswer(text,i,f.getQuestionCount(),sa);
+            qa.addQuestion(Question
+                    .newBuilder()
+                    .setQuestionType(QT_BLANK_FILLING)
+                    .setScore(f.getScorePreQuestion())
+                    .setAnswerText(sa.get(0))
+                    .setDifficulty(sa.get(1).isEmpty()?5.0:Double.valueOf(sa.get(1)))
+                    .setAnalysis(sa.get(2))
+                    .setQuestionTypeName(sa.get(3))
+                    .setKnowledge(sa.get(4))
+                    .setChapter(sa.get(5))
+                    .build()
+            );
+            j++;
+        }
+        end =Math.min(i,text.size());
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setValue(Integer.valueOf(end));
+        }
+
+        return qa.build();
     }
 
     /**

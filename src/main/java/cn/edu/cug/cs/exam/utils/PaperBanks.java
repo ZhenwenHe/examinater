@@ -1,6 +1,7 @@
 package cn.edu.cug.cs.exam.utils;
 
 import cn.edu.cug.cs.exam.filters.PaperFilter;
+import cn.edu.cug.cs.exam.io.AnswerExtractor;
 import cn.edu.cug.cs.exam.io.PaperExtractor;
 import cn.edu.cug.cs.gtl.protos.Paper;
 import cn.edu.cug.cs.gtl.protos.PaperBank;
@@ -67,7 +68,7 @@ public class PaperBanks {
     public static Paper importPaper(String paperFile, String answerFile, PaperFilter filter) throws Exception{
         PaperExtractor paperExtractor=new PaperExtractor(filter);
         Paper paper=paperExtractor.parsePaper(paperFile);
-        return importAnswer(paper,answerFile);
+        return importAnswer(paper,answerFile,filter);
     }
 
     /**
@@ -107,8 +108,9 @@ public class PaperBanks {
      * @return
      * @throws Exception
      */
-    public static Paper importAnswer(Paper paper, String answerFile) throws Exception{
+    public static Paper importAnswer(Paper paper, String answerFile,PaperFilter paperFilter) throws Exception{
         //TODO : 以 answer_template.doc为例
-        return paper;
+        AnswerExtractor answerExtractor = new AnswerExtractor(paperFilter);
+        return answerExtractor.parseAnswers(paper,answerFile);
     }
 }

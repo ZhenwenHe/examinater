@@ -36,30 +36,37 @@ public class PaperFilter {
                 case QT_SINGLE_CHOICE:{
                     if(qf instanceof SingleChoiceQuestionFilter)
                         return qf;
+                    break;
                 }
                 case QT_MULTI_CHOICE:{
                     if(qf instanceof MultiChoiceQuestionFilter)
                         return qf;
+                    break;
                 }
                 case QT_TRUE_FALSE:{
                     if(qf instanceof TrueFalseQuestionFilter)
                         return qf;
+                    break;
                 }
                 case QT_BLANK_FILLING:{
                     if(qf instanceof BlankFillingQuestionFilter)
                         return qf;
+                    break;
                 }
                 case QT_SHORT_ANSWER:{
                     if(qf instanceof ShortAnswerQuestionFilter)
                         return qf;
+                    break;
                 }
                 case QT_PROBLEM_SOLVING:{
                     if(qf instanceof ProblemSolvingQuestionFilter)
                         return qf;
+                    break;
                 }
                 default:{//
                     if(qf instanceof SynthesizedQuestionFilter)
                         return qf;
+                    break;
                 }
             }
         }

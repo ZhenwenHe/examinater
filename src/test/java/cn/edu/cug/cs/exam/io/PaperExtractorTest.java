@@ -17,8 +17,9 @@ public class PaperExtractorTest {
     String psFilterFile = "dat/problemsolving_filters.txt";
     String syFilterFile = "dat/synthesized_filters.txt";
     String answerFilterFile = "dat/answer_filters.txt";
+    String bfFilterFile = "dat/blankfilling_filters.txt";
     //String inputFile = "dat/paper_template.doc";
-    String inputFile = "dat/paper_template2.doc";
+    String inputFile = "dat/paper_template3.doc";
 
     @Test
     public void parsePaper() {
@@ -26,6 +27,7 @@ public class PaperExtractorTest {
             //read filters
             PaperFilter filter= new PaperFilter(filterFile);
             filter.addQuestionFilter(scFilterFile, QuestionType.QT_SINGLE_CHOICE);
+            filter.addQuestionFilter(bfFilterFile, QuestionType.QT_BLANK_FILLING);
             filter.addQuestionFilter(saFilterFile, QuestionType.QT_SHORT_ANSWER);
             filter.addQuestionFilter(psFilterFile, QuestionType.QT_PROBLEM_SOLVING);
             filter.addQuestionFilter(syFilterFile, QuestionType.QT_SYNTHESIZED);
@@ -51,6 +53,7 @@ public class PaperExtractorTest {
             filter.addQuestionFilter(saFilterFile, QuestionType.QT_SHORT_ANSWER);
             filter.addQuestionFilter(psFilterFile, QuestionType.QT_PROBLEM_SOLVING);
             filter.addQuestionFilter(syFilterFile, QuestionType.QT_SYNTHESIZED);
+            filter.addQuestionFilter(bfFilterFile, QuestionType.QT_BLANK_FILLING);
             filter.setAnswerFilter(answerFilterFile);
 
             PaperExtractor extractor = new PaperExtractor(filter);

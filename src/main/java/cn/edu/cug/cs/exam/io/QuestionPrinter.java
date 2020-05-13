@@ -52,7 +52,29 @@ public class QuestionPrinter {
     }
 
     public static String blankFillingToChaoXing(Question q){
-        return null;
+        StringBuilder sb=new StringBuilder();
+        //题干、选项、答案、难易程度、答案解析、题型，相互之间用回车隔开
+        //答案：C
+        //难易程度：中
+        //答案解析：花间集的答案解析
+        //题型：单选题
+        sb.append("{\n");
+        sb.append(toString(q));
+        sb.append("\n}\n");
+        sb.append("{\n答案：\n");
+        sb.append(q.getAnswerText());
+        sb.append("\n}\n");
+        sb.append("难易程度：");
+        //难度系数，1-3，易，4-6，中，7-9，难
+        sb.append(difficultyToString(q.getDifficulty()));
+        sb.append("\n");
+        sb.append("答案解析：");
+        sb.append(q.getAnalysis());
+        sb.append("\n");
+        sb.append("题型：");
+        sb.append(typeToString(q.getQuestionType()));
+        sb.append("\n");
+        return sb.toString();
     }
 
     public static String tureFalseToChaoXing(Question q){
@@ -151,6 +173,10 @@ public class QuestionPrinter {
                 sz= singleChoiceQuestionToString(q);
                 break;
             }
+            case QT_BLANK_FILLING:{
+                sz= blankFillingQuestionToString(q);
+                break;
+            }
             case QT_SHORT_ANSWER:{
                 sz= shortAnswerQuestionToString(q);
                 break;
@@ -178,6 +204,20 @@ public class QuestionPrinter {
         sb.append("\n");
         return sb.toString();
     }
+
+    /**
+     * 简答题转成字符串，不含答案
+     * @param q
+     * @return
+     */
+    private static String blankFillingQuestionToString(Question q) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(q.getQuestionText(0));
+        sb.append("\n");
+        return sb.toString();
+    }
+
+
 
     /**
      * 应用题转成字符串，不含答案

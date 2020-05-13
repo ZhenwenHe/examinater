@@ -97,16 +97,46 @@ public class SingleChoiceQuestionFilter extends QuestionFilter{
         }
 
         //每个选项一行，共四行
-        sa.add(choiceAText(line).trim());
-        line = text.get(i+1);
-        sa.add(choiceBText(line).trim());
-        line = text.get(i+2);
-        sa.add(choiceCText(line).trim());
-        line = text.get(i+3);
-        sa.add(choiceDText(line).trim());
-        return i+3;
+        String sz="";
+        while (sz.isEmpty()){
+            sz=choiceAText(line).trim();
+            i++;
+            line = text.get(i);
+        }
+        sa.add(sz);
+
+        sz="";
+        while (sz.isEmpty()){
+            sz=choiceBText(line).trim();
+            i++;
+            line = text.get(i);
+        }
+        sa.add(sz);
+
+        sz="";
+        while (sz.isEmpty()){
+            sz=choiceCText(line).trim();
+            i++;
+            line = text.get(i);
+        }
+        sa.add(sz);
+
+        sz="";
+        while (sz.isEmpty()){
+            sz=choiceDText(line).trim();
+            i++;
+            line = text.get(i);
+        }
+        sa.add(sz);
+
+        return i-1;
     }
 
+    /**
+     *
+     * @param s
+     * @return
+     */
     private String choiceAText(String s){
         Pattern p = patterns.get(5);
         Matcher m = p.matcher(s);
@@ -116,6 +146,12 @@ public class SingleChoiceQuestionFilter extends QuestionFilter{
         else
             return new String("");
     }
+
+    /**
+     *
+     * @param s
+     * @return
+     */
     private String choiceBText(String s){
         Pattern p = patterns.get(6);
         Matcher m = p.matcher(s);
@@ -125,6 +161,12 @@ public class SingleChoiceQuestionFilter extends QuestionFilter{
         else
             return new String("");
     }
+
+    /**
+     *
+     * @param s
+     * @return
+     */
     private String choiceCText(String s){
         Pattern p = patterns.get(7);
         Matcher m = p.matcher(s);
@@ -134,6 +176,12 @@ public class SingleChoiceQuestionFilter extends QuestionFilter{
         else
             return new String("");
     }
+
+    /**
+     *
+     * @param s
+     * @return
+     */
     private String choiceDText(String s){
         Pattern p = patterns.get(8);
         Matcher m = p.matcher(s);

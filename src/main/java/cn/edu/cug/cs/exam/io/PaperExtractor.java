@@ -87,7 +87,7 @@ public class PaperExtractor {
             if(filter.eliminate(paragraphs[j])==false)
                 ss.add(paragraphs[j]);
         }
-        //剔除连续空行
+        //剔除连续空格行
         int c = ss.size();
         Pattern p = Pattern.compile("^\\s+");
         for(int j=0;j<c;++j){
@@ -96,6 +96,8 @@ public class PaperExtractor {
                 c--;
             }
         }
+        //删除空行
+        ss=eraseEmptyLine(ss);
         return ss;
     }
 
@@ -257,7 +259,59 @@ public class PaperExtractor {
      * @return
      */
     private QuestionGroup parseBlankFillingQuestions(ArrayList<String> text,Pair<Integer,Integer> range){
-        return null;
+        QuestionGroup.Builder qa =  QuestionGroup.newBuilder();
+        qa.setQuestionType(QT_BLANK_FILLING);
+        BlankFillingQuestionFilter f =(BlankFillingQuestionFilter) filter.getQuestionFilter(QT_BLANK_FILLING);
+        if(f==null) {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
+        //提取简答题大题题干信息，获取简答题的分值，总分值和题目个数
+        int i=0;
+        int start,end=-1;
+        int s = text.size();
+        String line =null;
+        for(i=0;i<s;++i){
+            line = text.get(i);
+            if(f.begin(line)){
+                break;
+            }
+        }
+        start =i;
+        //开始提取每个填空题
+        int j=0;
+        while(i<s && j<f.getQuestionCount()){
+            i++;
+            line = text.get(i);
+            //获取题干信息
+            String qt = f.questionText(line);
+            if(qt.isEmpty()==false){
+                ArrayList<String> als = new ArrayList<>();
+                qt = qt.trim();
+                als.add(qt);
+                qa.addQuestion(Question
+                        .newBuilder()
+                        .setQuestionType(QT_BLANK_FILLING)
+                        .setScore(f.getScorePreQuestion())
+                        .setAnswerText("")
+                        .addAllQuestionText(als)
+                        .build()
+                );
+                j++;
+            }
+        }
+        end =Math.min(i+1,text.size());
+        if(range!=null) {
+            range.setKey(Integer.valueOf(start));
+            range.setValue(Integer.valueOf(end));
+        }
+        qa.setScorePreQuestion(f.getScorePreQuestion());
+        qa.setTotalScore(f.getTotalScore());
+
+        return qa.build();
     }
 
     /**
@@ -528,6 +582,24 @@ public class PaperExtractor {
                 s = text.size();
                 ++i;
             }
+        }
+        return text;
+    }
+
+    private static ArrayList<String> eraseEmptyLine(ArrayList<String> text){
+        int s = text.size();
+        int i=0;
+        Pattern p = Pattern.compile("^\\s+\\r");
+        while (i<s){
+            if(text.get(i).isEmpty()||text.get(i).equals("\r")||text.get(i).equals("\n"))
+                text.remove(i);
+            else if(p.matcher(text.get(i)).find()) {
+                text.remove(i);
+            }
+            else {
+                i++;
+            }
+            s = text.size();
         }
         return text;
     }
