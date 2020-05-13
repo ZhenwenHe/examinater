@@ -47,19 +47,43 @@ public class AnswerExtractor {
         Paper.Builder builder = Paper.newBuilder();
         Pair<Integer,Integer> range = new Pair<>();
         QuestionGroup qg = parseSingleChoiceAnswers(text,range);
-        if(qg!=null) builder.addQuestionGroup(qg);
+        if(qg!=null) {
+            text = erase(text,range.first(),range.second());
+            if(qg.getQuestionCount()>0) builder.addQuestionGroup(qg);
+        }
         qg = parseMultiChoiceAnswers(text,range);
-        if(qg!=null) builder.addQuestionGroup(qg);
+        if(qg!=null) {
+            text = erase(text,range.first(),range.second());
+            if(qg.getQuestionCount()>0) builder.addQuestionGroup(qg);
+        }
         qg = parseBlankFillingAnswers(text,range);
-        if(qg!=null) builder.addQuestionGroup(qg);
+        if(qg!=null) {
+            text = erase(text,range.first(),range.second());
+            if(qg.getQuestionCount()>0) builder.addQuestionGroup(qg);
+        }
         qg = parseTrueFalseAnswers(text,range);
-        if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseShortAnswerAnswers(text,range);
-        if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseProblemSolvingAnswers(text,range);
-        if(qg!=null) builder.addQuestionGroup(qg);
-        qg = parseSynthesizedAnswers(text,range);
-        if(qg!=null) builder.addQuestionGroup(qg);
+        if(qg!=null) {
+            text = erase(text,range.first(),range.second());
+            if(qg.getQuestionCount()>0) builder.addQuestionGroup(qg);
+        }
+
+        do {
+            qg = parseShortAnswerAnswers(text, range);
+            text = erase(text, range.first(), range.second());
+            if (qg != null&& qg.getQuestionCount()>0) builder.addQuestionGroup(qg);
+        }while (qg != null && qg.getQuestionCount()>0);
+
+        do {
+            qg = parseProblemSolvingAnswers(text, range);
+            text=erase(text,range.first(),range.second());
+            if (qg != null&& qg.getQuestionCount()>0) builder.addQuestionGroup(qg);
+        } while (qg != null && qg.getQuestionCount()>0);
+
+        do {
+            qg = parseSynthesizedAnswers(text, range);
+            text=erase(text,range.first(),range.second());
+            if (qg != null&& qg.getQuestionCount()>0) builder.addQuestionGroup(qg);
+        }while (qg != null && qg.getQuestionCount()>0);
 
         Paper answer= builder.build();
         if(paper!=null){
@@ -80,7 +104,13 @@ public class AnswerExtractor {
         qa.setQuestionType(QT_SINGLE_CHOICE);
         //处理一级大题的题干信息
         SingleChoiceQuestionFilter f =(SingleChoiceQuestionFilter) filter.getQuestionFilter(QT_SINGLE_CHOICE);
-        if(f==null) return qa.build();
+        if(f==null)  {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
         //提取选择题大题题干信息，获取选择题的分值，总分值和题目个数
         int i=0;
         int start, end=-1;
@@ -97,10 +127,11 @@ public class AnswerExtractor {
         start=i;
 
         if(i==s) {
-            end =i;
+            start =i;
+            end =Math.min(i+1,text.size());
             if(range!=null) {
                 range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setValue(Integer.valueOf(end));
             }
             return qa.build();
         }
@@ -125,12 +156,12 @@ public class AnswerExtractor {
             );
             j++;
         }
-        end =i;
+        end =Math.min(i,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
-        assert qa.getQuestionCount()==f.getQuestionCount();
+
         return qa.build();
     }
 
@@ -148,8 +179,8 @@ public class AnswerExtractor {
         int start =0,end=-1;
         if(f==null){
             if(range!=null) {
-                range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
             }
             return qa.build();
         }
@@ -166,10 +197,11 @@ public class AnswerExtractor {
             }
         }
         if(i==s) {
+            start =i;
+            end =Math.min(i,text.size());
             if(range!=null) {
-                start=i;
                 range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setValue(Integer.valueOf(end));
             }
             return qa.build();
         }
@@ -195,12 +227,12 @@ public class AnswerExtractor {
             );
             j++;
         }
-        end =i;
+        end =Math.min(i,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
-        assert qa.getQuestionCount()==f.getQuestionCount();
+
         return qa.build();
     }
 
@@ -218,8 +250,8 @@ public class AnswerExtractor {
         ProblemSolvingQuestionFilter f =(ProblemSolvingQuestionFilter) filter.getQuestionFilter(QT_PROBLEM_SOLVING);
         if(f==null){
             if(range!=null) {
-                range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
             }
             return qa.build();
         }
@@ -235,10 +267,11 @@ public class AnswerExtractor {
             }
         }
         if(i==s) {
-            start=i;
+            start =i;
+            end =Math.min(i,text.size());
             if(range!=null) {
                 range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setValue(Integer.valueOf(end));
             }
             return qa.build();
         }
@@ -264,12 +297,13 @@ public class AnswerExtractor {
             j++;
         }
 
-        end =i;
+
+        end =Math.min(i,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
-        assert qa.getQuestionCount()==f.getQuestionCount();
+
         return qa.build();
     }
 
@@ -287,8 +321,8 @@ public class AnswerExtractor {
         SynthesizedQuestionFilter f =(SynthesizedQuestionFilter) filter.getQuestionFilter(QT_SYNTHESIZED);
         if(f==null) {
             if(range!=null) {
-                range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
             }
             return qa.build();
         }
@@ -305,9 +339,10 @@ public class AnswerExtractor {
         }
         if(i==s) {
             start =i;
+            end =Math.min(i,text.size());
             if(range!=null) {
                 range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setValue(Integer.valueOf(end));
             }
             return qa.build();
         }
@@ -372,10 +407,10 @@ public class AnswerExtractor {
                 .addAllSubQuestion(questionArrayList)
                 .build());
 
-        end =i;
+        end =Math.min(i,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
 
         return qa.build();
@@ -599,5 +634,26 @@ public class AnswerExtractor {
             builder.setQuestionGroup(i,r);
         }
         return builder.build();
+    }
+
+    /**
+     * 删除数组中的指定元素，并返回新数组
+     * @param text
+     * @param start
+     * @param end
+     * @return
+     */
+    private static ArrayList<String> erase(ArrayList<String> text, int start, int end){
+        int c = end-start;
+        int s = text.size();
+        if(c>0){
+            int i=0;
+            while (i<c && start<s){
+                text.remove(start);
+                s = text.size();
+                ++i;
+            }
+        }
+        return text;
     }
 }

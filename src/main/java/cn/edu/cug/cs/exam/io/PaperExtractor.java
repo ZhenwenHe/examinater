@@ -109,19 +109,45 @@ public class PaperExtractor {
         QuestionGroup qb= null;
         Pair<Integer,Integer> range=new Pair<>();
         qb =parseSingleChoiceQuestions(text,range);
-        if(qb!=null) qa.add(qb);
+        if(qb!=null) {
+            text=erase(text,range.first(),range.second());
+            if(qb.getQuestionCount()>0) qa.add(qb);
+        }
         qb= parseMultiChoiceQuestions(text,range);
-        if(qb!=null) qa.add(qb);
+        if(qb!=null) {
+            text=erase(text,range.first(),range.second());
+            if(qb.getQuestionCount()>0) qa.add(qb);
+        }
         qb= parseBlankFillingQuestions(text,range);
-        if(qb!=null) qa.add(qb);
+        if(qb!=null) {
+            text=erase(text,range.first(),range.second());
+            if(qb.getQuestionCount()>0) qa.add(qb);
+        }
         qb= parseTrueFalseQuestions(text,range);
-        if(qb!=null) qa.add(qb);
-        qb= parseShortAnswerQuestions(text,range);
-        if(qb!=null) qa.add(qb);
-        qb= parseProblemSolvingQuestions(text,range);
-        if(qb!=null) qa.add(qb);
-        qb= parseSynthesizedQuestions(text,range);
-        if(qb!=null) qa.add(qb);
+        if(qb!=null) {
+            text=erase(text,range.first(),range.second());
+            if(qb.getQuestionCount()>0) qa.add(qb);
+        }
+
+        //可能会出现多道一级简答大题
+        do {
+            qb= parseShortAnswerQuestions(text,range);
+            text=erase(text,range.first(),range.second());
+            if(qb!=null&& qb.getQuestionCount()>0) qa.add(qb);
+        }while (qb!=null && qb.getQuestionCount()>0) ;
+
+        //可能会出现多道一级应用大题
+        do{
+            qb= parseProblemSolvingQuestions(text,range);
+            text=erase(text,range.first(),range.second());
+            if(qb!=null&& qb.getQuestionCount()>0) qa.add(qb);
+        }while (qb!=null && qb.getQuestionCount()>0);
+        //可能会出现多道一级综合题
+        do{
+            qb= parseSynthesizedQuestions(text,range);
+            text=erase(text,range.first(),range.second());
+            if(qb!=null&& qb.getQuestionCount()>0) qa.add(qb);
+        }while (qb!=null && qb.getQuestionCount()>0);
 
         return qa;
     }
@@ -150,7 +176,13 @@ public class PaperExtractor {
         QuestionGroup.Builder qa =QuestionGroup.newBuilder();//(QT_SINGLE_CHOICE);
         qa.setQuestionType(QT_SINGLE_CHOICE);
         SingleChoiceQuestionFilter f =(SingleChoiceQuestionFilter) filter.getQuestionFilter(QT_SINGLE_CHOICE);
-        if(f==null) return qa.build();
+        if(f==null) {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
         //提取选择题大题题干信息，获取选择题的分值，总分值和题目个数
         int i=0;
         int start, end=-1;
@@ -159,10 +191,6 @@ public class PaperExtractor {
         for(i=0;i<s;++i){
             line = text.get(i);
             if(f.begin(line)){
-                System.out.println(line);
-                System.out.println(f.getScorePreQuestion());
-                System.out.println(f.getQuestionCount());
-                System.out.println(f.getTotalScore());
                 break;
             }
         }
@@ -177,52 +205,8 @@ public class PaperExtractor {
             if(qt.isEmpty()==false){
                 ArrayList<String> als = new ArrayList<>();
                 qt = qt.trim();
-                System.out.println(qt);
                 als.add(qt);
-                qt="";
-                //A text
-                while(qt.isEmpty()){
-                    i++;
-                    line = text.get(i);
-                    qt=f.choiceAText(line);
-                }
-                qt = qt.trim();
-                System.out.println(qt);
-                als.add(qt);
-                //B text
-                qt=f.choiceBText(line);
-                while(qt.isEmpty()){
-                    i++;
-                    line = text.get(i);
-                    qt=f.choiceBText(line);
-                }
-                qt = qt.trim();
-                System.out.println(qt);
-                als.add(qt);
-                //C text
-                qt=f.choiceCText(line);
-                while(qt.isEmpty()){
-                    i++;
-                    line = text.get(i);
-                    qt=f.choiceCText(line);
-                }
-                qt = qt.trim();
-                System.out.println(qt);
-                als.add(qt);
-                //D text
-                qt=f.choiceDText(line);
-                while(qt.isEmpty()){
-                    i++;
-                    line = text.get(i);
-                    qt=f.choiceDText(line);
-                }
-                qt = qt.trim();
-                System.out.println(qt);
-                als.add(qt);
-
-//                SingleChoiceQuestion q = new SingleChoiceQuestion(als,"");
-//                q.setScore(f.getScorePreQuestion());
-//                qa.add(q);
+                i=f.choiceTexts(text,i+1,als);
                 qa.addQuestion(Question
                         .newBuilder()
                         .setQuestionType(QT_SINGLE_CHOICE)
@@ -235,10 +219,10 @@ public class PaperExtractor {
                 j++;
             }
         }
-        end =i;
+        end =Math.min(i+1,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
         qa.setScorePreQuestion(f.getScorePreQuestion());
         qa.setTotalScore(f.getTotalScore());
@@ -286,7 +270,13 @@ public class PaperExtractor {
         QuestionGroup.Builder qa =  QuestionGroup.newBuilder();
         qa.setQuestionType(QT_SHORT_ANSWER);
         ShortAnswerQuestionFilter f =(ShortAnswerQuestionFilter) filter.getQuestionFilter(QT_SHORT_ANSWER);
-        if(f==null) return qa.build();
+        if(f==null) {
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
         //提取简答题大题题干信息，获取简答题的分值，总分值和题目个数
         int i=0;
         int start,end=-1;
@@ -295,10 +285,6 @@ public class PaperExtractor {
         for(i=0;i<s;++i){
             line = text.get(i);
             if(f.begin(line)){
-                System.out.println(line);
-                System.out.println(f.getScorePreQuestion());
-                System.out.println(f.getQuestionCount());
-                System.out.println(f.getTotalScore());
                 break;
             }
         }
@@ -313,7 +299,6 @@ public class PaperExtractor {
             if(qt.isEmpty()==false){
                 ArrayList<String> als = new ArrayList<>();
                 qt = qt.trim();
-                System.out.println(qt);
                 als.add(qt);
 //                ShortAnswerQuestion q = new ShortAnswerQuestion(als,"");
 //                q.setScore(f.getScorePreQuestion());
@@ -329,14 +314,13 @@ public class PaperExtractor {
                 j++;
             }
         }
-        end =i;
+        end =Math.min(i+1,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
         qa.setScorePreQuestion(f.getScorePreQuestion());
         qa.setTotalScore(f.getTotalScore());
-        assert qa.getQuestionCount()==f.getQuestionCount();
 
         return qa.build();
     }
@@ -351,7 +335,13 @@ public class PaperExtractor {
         QuestionGroup.Builder qa =  QuestionGroup.newBuilder();
         qa.setQuestionType(QT_PROBLEM_SOLVING);
         ProblemSolvingQuestionFilter f =(ProblemSolvingQuestionFilter) filter.getQuestionFilter(QT_PROBLEM_SOLVING);
-        if(f==null) return qa.build();
+        if(f==null){
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
+            return qa.build();
+        }
         //提取应用题大题题干信息，获取总分值和题目个数
         int i=0;
         int start,end=-1;
@@ -360,9 +350,6 @@ public class PaperExtractor {
         for(i=0;i<s;++i){
             line = text.get(i);
             if(f.begin(line)){
-                System.out.println(line);
-                System.out.println(f.getQuestionCount());
-                System.out.println(f.getTotalScore());
                 break;
             }
         }
@@ -377,7 +364,6 @@ public class PaperExtractor {
             String qt = qtp.first();
             if(qt.isEmpty()==false){
                 qt = qt.trim();
-                System.out.println(qt);
                 ArrayList<String> als = new ArrayList<>();
                 ArrayList<Double> detailedScores=new ArrayList<>();
                 als.add(qt);
@@ -388,11 +374,6 @@ public class PaperExtractor {
                     c = f.questionTexts(line,als,detailedScores);
                     if(c==0 && !line.isEmpty()) i--;
                 }
-                //c等于0的时候跳出
-//                ProblemSolvingQuestion q = new ProblemSolvingQuestion(als,"");
-//                q.setScore(qtp.second().doubleValue());
-//                q.setDetailedScores(detailedScores);
-//                qa.add(q);
                 qa.addQuestion(Question
                         .newBuilder()
                         .setQuestionType(QT_PROBLEM_SOLVING)
@@ -406,14 +387,13 @@ public class PaperExtractor {
                 j++;
             }
         }
-        end =i;
+        end =Math.min(i+1,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
         qa.setScorePreQuestion(0);
         qa.setTotalScore(f.getTotalScore());
-        assert qa.getQuestionCount()==f.getQuestionCount();
 
         return qa.build();
 
@@ -432,6 +412,10 @@ public class PaperExtractor {
         ArrayList<Question> alq = new ArrayList<>();
         SynthesizedQuestionFilter f =(SynthesizedQuestionFilter) filter.getQuestionFilter(QT_SYNTHESIZED);
         if(f==null){
+            if(range!=null) {
+                range.setKey(Integer.valueOf(0));
+                range.setValue(Integer.valueOf(0));
+            }
             return qa.build();
         }
         //提取大题题干信息，获取总分值和二级题目个数
@@ -442,9 +426,6 @@ public class PaperExtractor {
         for(i=0;i<s;++i){
             line = text.get(i);
             if(f.begin(line)){
-                System.out.println(line);
-                System.out.println(f.getQuestionCount());
-                System.out.println(f.getTotalScore());
                 break;
             }
         }
@@ -455,20 +436,20 @@ public class PaperExtractor {
             line = text.get(i);
             line = line.trim();
             if(line.isEmpty()) {
-                end =i;
+                end =Math.min(i+1,text.size());
                 if(range!=null) {
                     range.setKey(Integer.valueOf(start));
-                    range.setKey(Integer.valueOf(end));
+                    range.setValue(Integer.valueOf(end));
                 }
                 return qa.build();
             }
             als_text.add(line);
         }
         else {
-            end =i;
+            end =Math.min(i+1,text.size());
             if(range!=null) {
                 range.setKey(Integer.valueOf(start));
-                range.setKey(Integer.valueOf(end));
+                range.setValue(Integer.valueOf(end));
             }
             return qa.build();
         }
@@ -483,7 +464,6 @@ public class PaperExtractor {
             String qt = qtp.first();
             if(qt.isEmpty()==false){
                 qt = qt.trim();
-                System.out.println(qt);
                 ArrayList<String> als = new ArrayList<>();
                 als.add(qt);
                 int c=1;
@@ -494,10 +474,7 @@ public class PaperExtractor {
                     if(!line.isEmpty()&&c==0)
                         i--;
                 }
-                //c等于0的时候跳出
-//                ProblemSolvingQuestion q = new ProblemSolvingQuestion(als,"");
-//                q.setScore(qtp.second().doubleValue());
-//                alq.add(q);
+
                 alq.add(Question.newBuilder()
                         .setQuestionType(QT_PROBLEM_SOLVING)
                         .setScore(qtp.second().doubleValue())
@@ -510,9 +487,6 @@ public class PaperExtractor {
         }
 
         if(alq.size()>0 && als_text.size()>0){
-//            SynthesizedQuestion synthesizedQuestion=new SynthesizedQuestion(als_text,alq,"");
-//            synthesizedQuestion.setScore(f.getTotalScore());
-//            qa.add(synthesizedQuestion);
             qa.addQuestion(Question
                     .newBuilder()
                     .setQuestionType(QT_SYNTHESIZED)
@@ -528,13 +502,33 @@ public class PaperExtractor {
         qa.setScorePreQuestion(0);
         qa.setTotalScore(f.getTotalScore());
 
-        end =i;
+        end =Math.min(i+1,text.size());
         if(range!=null) {
             range.setKey(Integer.valueOf(start));
-            range.setKey(Integer.valueOf(end));
+            range.setValue(Integer.valueOf(end));
         }
 
         return qa.build();
     }
 
+    /**
+     * 删除数组中的指定元素，并返回新数组
+     * @param text
+     * @param start
+     * @param end
+     * @return
+     */
+    private static ArrayList<String> erase(ArrayList<String> text, int start, int end){
+        int c = end-start;
+        int s = text.size();
+        if(c>0){
+            int i=0;
+            while (i<c && start<s){
+                text.remove(start);
+                s = text.size();
+                ++i;
+            }
+        }
+        return text;
+    }
 }
